@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import userRoute from "./Routes/User_route.js";
 import productRoute from "./Routes/Product_routes.js";
+import orderRoute from "./Routes/Order_route.js";
 
 dotenv.config();
 
@@ -33,7 +34,8 @@ app.use(express.json());
 // API Routes
 
 app.use('/api/auth', userRoute);
-app.use('/api/products', productRoute)
+app.use('/api/products', productRoute);
+app.use('/api/orders', orderRoute)
 
 
 // Global Error Handler
