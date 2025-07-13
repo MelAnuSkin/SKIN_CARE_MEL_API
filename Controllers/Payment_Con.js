@@ -1,0 +1,125 @@
+import axios from 'axios';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
+import { Order } from '../Models/Order_Mod.js';
+
+dotenv.config();
+
+const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+
+//initialize payment
+export const initiatePayment = async (req, res) => {
+  try {
+    const { amount, email, orderId } = req.body;
+
+    if (!amount || !email || !orderId) {
+      return res.status(400).json({ message: 'Amount, email, and orderId are required' });
+    }
+
+    // Initialize transaction with Paystack
+    const response = await axios.post(
+      'https://api.paystack.co/transaction/initialize',
+      {
+        amount: amount * 100, // Paystack uses kobo
+        email,
+        metadata: { orderId }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`
+        }
+      }
+    );
+
+    const { authorization_url, reference } = response.data.data;
+
+    res.status(200).json({ authorization_url, reference });
+  } catch (error) {
+    console.error('Payment initiation failed:', error?.response?.data || error.message);
+    res.status(500).json({ message: 'Failed to initiate payment' });
+  }
+};
+
+//Manual payment verification
+export const verifyPayment = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    if (!reference) {
+      return res.status(400).json({ message: 'Transaction reference is required' });
+    }
+
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`
+        }
+      }
+    );
+
+    const paymentData = response.data.data;
+
+    if (paymentData.status === 'success') {
+      const orderId = paymentData.metadata?.orderId;
+
+      if (orderId) {
+        // Mark order as paid in DB
+        const order = await Order.findById(orderId);
+        if (order) {
+          order.isPaid = true;
+          order.paidAt = new Date();
+          await order.save();
+        }
+      }
+
+      return res.json({
+        message: 'Payment verified successfully',
+        data: paymentData
+      });
+    } else {
+      return res.status(400).json({ message: 'Payment not successful' });
+    }
+  } catch (error) {
+    console.error('Payment verification failed:', error?.response?.data || error.message);
+    res.status(500).json({ message: 'Failed to verify payment' });
+  }
+};
+
+//Automate payment with webhook
+export const paystackWebhook = async (req, res) => {
+  try {
+    const hash = crypto
+      .createHmac('sha512', PAYSTACK_SECRET_KEY)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (hash !== req.headers['x-paystack-signature']) {
+      return res.status(401).json({ message: 'Invalid signature' });
+    }
+
+    const event = req.body;
+
+    if (event.event === 'charge.success') {
+      const data = event.data;
+      const metadata = data.metadata;
+      const orderId = metadata?.orderId;
+
+      if (orderId) {
+        const order = await Order.findById(orderId);
+        if (order && !order.isPaid) {
+          order.isPaid = true;
+          order.paidAt = new Date();
+          await order.save();
+          console.log('Order marked as paid from webhook:', order._id);
+        }
+      }
+    }
+
+    // Always respond 200 so Paystack doesn't retry
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Webhook processing failed:', error.message);
+    res.sendStatus(500);
+  }
+};

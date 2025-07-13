@@ -1,0 +1,160 @@
+import { Order } from '../Models/Order_Mod.js';
+import { Product } from '../Models/Product_Mod.js';
+
+// Create Order
+export const createOrder = async (req, res) => {
+  try {
+    const { items, shippingAddress } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'No order items' });
+    }
+
+    let totalAmount = 0;
+    const orderItems = [];
+
+    // Build order items securely
+    for (const item of items) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({ message: `Product not found: ${item.product}` });
+      }
+
+      const orderItem = {
+        product: product._id,
+        quantity: item.quantity,
+        price: product.price
+      };
+
+      orderItems.push(orderItem);
+
+      totalAmount += product.price * item.quantity;
+    }
+
+    const newOrder = await Order.create({
+      user: req.user._id,
+      items: orderItems,
+      shippingAddress,
+      totalAmount
+    });
+
+    res.status(201).json({ message: 'Order placed', order: newOrder });
+  } catch (error) {
+    console.error('Create order error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+// Get logged-in user's orders
+export const getUserOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user._id }).populate('items.product');
+    res.json(orders);
+  } catch (error) {
+    console.error('Get user orders error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Admin: get all orders
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().populate('user', 'firstName lastName email').populate('items.product');
+    res.json(orders);
+  } catch (error) {
+    console.error('Get all orders error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Admin: update order status
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.orderStatus = status || order.orderStatus;
+    await order.save();
+
+    res.json({ message: 'Order status updated', order });
+  } catch (error) {
+    console.error('Update order status error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+//update Orders by users
+export const updateMyOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (!order.user.equals(req.user._id)) {
+      return res.status(403).json({ message: 'Not your order' });
+    }
+
+    if (order.orderStatus !== 'pending') {
+      return res.status(400).json({ message: 'Cannot update after processing starts' });
+    }
+ 
+    // Allow users to update their shippingAddress and items
+    const { shippingAddress, items } = req.body;
+
+    if (shippingAddress) {
+      order.shippingAddress = shippingAddress;
+    }
+
+    if (items && items.length > 0) {
+      order.items = items;
+
+      // Recalculate totalAmount
+      let totalAmount = 0;
+      for (const item of items) {
+        totalAmount += item.price * item.quantity;
+      }
+      order.totalAmount = totalAmount;
+    }
+
+    await order.save();
+
+    res.json({ message: 'Order updated', order });
+  } catch (error) {
+    console.error('Update order error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+// Allow users to cancel oders
+export const cancelMyOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (!order.user.equals(req.user._id)) {
+      return res.status(403).json({ message: 'Not your order' });
+    }
+
+    if (order.orderStatus !== 'pending') {
+      return res.status(400).json({ message: 'Cannot cancel after processing' });
+    }
+
+    order.orderStatus = 'cancelled';
+    await order.save();
+
+    res.json({ message: 'Order cancelled', order });
+  } catch (error) {
+    console.error('Cancel order error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
