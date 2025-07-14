@@ -89,6 +89,7 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 //update Orders by users
+
 export const updateMyOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -97,29 +98,44 @@ export const updateMyOrder = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
+    // Check ownership
     if (!order.user.equals(req.user._id)) {
       return res.status(403).json({ message: 'Not your order' });
     }
 
+    // Only allow updates if still pending
     if (order.orderStatus !== 'pending') {
       return res.status(400).json({ message: 'Cannot update after processing starts' });
     }
- 
-    // Allow users to update their shippingAddress and items
-    const { shippingAddress, items } = req.body;
 
+    // Allow updating shipping address
+    const { shippingAddress, items } = req.body;
     if (shippingAddress) {
       order.shippingAddress = shippingAddress;
     }
 
+    // Handle items update
     if (items && items.length > 0) {
-      order.items = items;
-
-      // Recalculate totalAmount
+      // Validate and recalculate
       let totalAmount = 0;
+      const validatedItems = [];
+
       for (const item of items) {
-        totalAmount += item.price * item.quantity;
+        const product = await Product.findById(item.product);
+        if (!product) {
+          return res.status(404).json({ message: `Product not found: ${item.product}` });
+        }
+
+        validatedItems.push({
+          product: product._id,
+          quantity: item.quantity,
+          price: product.price
+        });
+
+        totalAmount += product.price * item.quantity;
       }
+
+      order.items = validatedItems;
       order.totalAmount = totalAmount;
     }
 
@@ -131,6 +147,7 @@ export const updateMyOrder = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 // Allow users to cancel oders
 export const cancelMyOrder = async (req, res) => {
   try {
