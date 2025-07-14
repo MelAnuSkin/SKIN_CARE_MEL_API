@@ -6,9 +6,10 @@ import { createProduct, getProductById, getProducts, updateProduct, deleteProduc
 const productRoute = express.Router();
 
 // Public routes
+productRoute.get('/search', searchProducts)
 productRoute.get('/', getProducts);
 productRoute.get('/:id', getProductById);
-productRoute.get('/search', searchProducts)
+
 
 // Admin-only routes
 productRoute.post('/', protect, adminOnly, parser.single('image'), createProduct);

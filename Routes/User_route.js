@@ -22,7 +22,7 @@ userRoute.post('/login', login);
 userRoute.post('/forgot-password', forgotPassword);
 
 // @route   POST /api/auth/reset-password/:token
-userRoute.post('/reset-password/:token', resetPassword);
+userRoute.put('/reset-password/:token', resetPassword);
 
 userRoute.get('/profile', protect, getUserProfile);
 userRoute.put('/profile', protect, updateUserProfile);

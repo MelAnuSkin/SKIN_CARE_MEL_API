@@ -34,3 +34,26 @@ export const sendOtpEmail = async (toEmail, otp) => {
     console.error("Failed to send email:", error.message);
   }
 };
+
+export const sendPasswordResetEmail = async (toEmail, resetUrl) => {
+  try {
+    const info = await transporter.sendMail({
+      from: `"Advert API Team" <${process.env.SMTP_USER}>`,
+      to: toEmail,
+      subject: "Password Reset Request",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2;">
+          <h2 style="color: #007BFF;">Reset Your Password</h2>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetUrl}" style="color: #007BFF;">Reset Password</a>
+          <p style="font-size: 14px; color: #777;">If you did not request this, please ignore this email.</p>
+        </div>
+      `,
+    });
+
+    console.log("Password reset email sent:", info.messageId);
+  } catch (error) {
+    console.error("Failed to send password reset email:", error.message);
+  }
+};
+

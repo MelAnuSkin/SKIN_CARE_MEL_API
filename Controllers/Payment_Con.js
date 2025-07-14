@@ -40,7 +40,7 @@ export const initiatePayment = async (req, res) => {
   }
 };
 
-//Manual payment verification
+// Manual payment verification
 export const verifyPayment = async (req, res) => {
   try {
     const { reference } = req.params;
@@ -67,7 +67,7 @@ export const verifyPayment = async (req, res) => {
         // Mark order as paid in DB
         const order = await Order.findById(orderId);
         if (order) {
-          order.isPaid = true;
+          order.paymentStatus = 'paid';
           order.paidAt = new Date();
           await order.save();
         }

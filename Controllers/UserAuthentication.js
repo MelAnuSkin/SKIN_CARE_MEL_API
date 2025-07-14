@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { User } from '../Models/User_Mod.js';
 import generateToken from '../Configs/Token.js';
-import { sendOtpEmail} from '../Configs/Email_services.js';
+import { sendOtpEmail, sendPasswordResetEmail} from '../Configs/Email_services.js';
 
 // ==============================
 // Helper to generate OTP
@@ -148,6 +148,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordToken = hashedToken;
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
+    
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 

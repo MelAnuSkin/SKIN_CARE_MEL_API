@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import userRoute from "./Routes/User_route.js";
 import productRoute from "./Routes/Product_routes.js";
 import orderRoute from "./Routes/Order_route.js";
+import paymentRoute from "./Routes/Payment_route.js";
 
 dotenv.config();
 
@@ -35,7 +36,8 @@ app.use(express.json());
 
 app.use('/api/auth', userRoute);
 app.use('/api/products', productRoute);
-app.use('/api/orders', orderRoute)
+app.use('/api/orders', orderRoute);
+app.use('/api/payments', paymentRoute);
 
 
 // Global Error Handler
