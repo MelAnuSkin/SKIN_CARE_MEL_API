@@ -86,7 +86,7 @@ export const verifyPayment = async (req, res) => {
   }
 };
 
-//Automate payment with webhook
+// Automate payment with webhook
 export const paystackWebhook = async (req, res) => {
   try {
     const hash = crypto
@@ -107,8 +107,8 @@ export const paystackWebhook = async (req, res) => {
 
       if (orderId) {
         const order = await Order.findById(orderId);
-        if (order && !order.isPaid) {
-          order.isPaid = true;
+        if (order && order.paymentStatus !== 'paid') {
+          order.paymentStatus = 'paid';
           order.paidAt = new Date();
           await order.save();
           console.log('Order marked as paid from webhook:', order._id);
