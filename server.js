@@ -1,10 +1,13 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 import userRoute from "./Routes/User_route.js";
 import productRoute from "./Routes/Product_routes.js";
 import orderRoute from "./Routes/Order_route.js";
 import paymentRoute from "./Routes/Payment_route.js";
+import cartRoute from "./Routes/Cart_route.js";
+import newsLetRoute from "./Routes/Newslet_route.js";
 
 dotenv.config();
 
@@ -27,6 +30,7 @@ mongoose
 // Middleware
 
 app.use(express.json());
+app.use(cors());
 
 
 
@@ -38,6 +42,8 @@ app.use('/api/auth', userRoute);
 app.use('/api/products', productRoute);
 app.use('/api/orders', orderRoute);
 app.use('/api/payments', paymentRoute);
+app.use('/api/carts', cartRoute);
+app.use('/api/newsletter', newsLetRoute)
 
 
 // Global Error Handler
