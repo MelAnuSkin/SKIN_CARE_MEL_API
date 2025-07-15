@@ -129,9 +129,9 @@ export const login = async (req, res) => {
   }
 };
 
-// ==============================
+
 // FORGOT PASSWORD
-// ==============================
+
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -148,7 +148,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordToken = hashedToken;
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
-    
+
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 

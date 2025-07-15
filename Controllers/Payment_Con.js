@@ -7,20 +7,32 @@ dotenv.config();
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
-//initialize payment
+// initialize payment 
 export const initiatePayment = async (req, res) => {
   try {
-    const { amount, email, orderId } = req.body;
+    const { email, orderId } = req.body;
 
-    if (!amount || !email || !orderId) {
-      return res.status(400).json({ message: 'Amount, email, and orderId are required' });
+    if (!email || !orderId) {
+      return res.status(400).json({ message: 'Email and orderId are required' });
     }
+
+    // Fetch order from DB
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.paymentStatus === 'paid') {
+      return res.status(400).json({ message: 'Order is already paid' });
+    }
+
+    const amountInKobo = order.totalAmount * 100;
 
     // Initialize transaction with Paystack
     const response = await axios.post(
       'https://api.paystack.co/transaction/initialize',
       {
-        amount: amount * 100, // Paystack uses kobo
+        amount: amountInKobo,
         email,
         metadata: { orderId }
       },
@@ -39,6 +51,7 @@ export const initiatePayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to initiate payment' });
   }
 };
+
 
 // Manual payment verification
 export const verifyPayment = async (req, res) => {
