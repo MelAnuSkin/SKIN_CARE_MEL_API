@@ -19,14 +19,11 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        'Haircare',
-        'Toner',
-        'Serum',
-        'Moisturizer',
-        'Sunscreen',
-        'Treatment',
-        'Mask',
-        'Exfoliant'
+        'Face Care',
+        'Body Care',
+        'Hair Care',
+        "Men's Collection",
+       
       ],
       index: true,
       required: [true, 'Product category is required'],
