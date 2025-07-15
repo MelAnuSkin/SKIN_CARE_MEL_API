@@ -3,16 +3,18 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// ✅ 1. Create the transporter once and reuse it
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, // true for SSL 
+  secure: true, // true for SSL
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
 });
 
+// ✅ 2. Send OTP Email
 export const sendOtpEmail = async (toEmail, otp) => {
   try {
     const info = await transporter.sendMail({
@@ -29,12 +31,13 @@ export const sendOtpEmail = async (toEmail, otp) => {
       `,
     });
 
-    console.log("Email sent:", info.messageId);
+    console.log("OTP email sent:", info.messageId);
   } catch (error) {
-    console.error("Failed to send email:", error.message);
+    console.error("Failed to send OTP email:", error.message);
   }
 };
 
+// ✅ 3. Send Password Reset Email
 export const sendPasswordResetEmail = async (toEmail, resetUrl) => {
   try {
     const info = await transporter.sendMail({
@@ -57,3 +60,18 @@ export const sendPasswordResetEmail = async (toEmail, resetUrl) => {
   }
 };
 
+// ✅ 4. Send Newsletter Email (mass emails)
+export const sendNewsletterEmail = async (recipients, subject, htmlContent) => {
+  try {
+    const info = await transporter.sendMail({
+      from: `"Advert API Team" <${process.env.SMTP_USER}>`,
+      to: recipients.join(','), // Accepts an array of emails
+      subject,
+      html: htmlContent,
+    });
+
+    console.log("Newsletter email sent to:", recipients);
+  } catch (error) {
+    console.error("Failed to send newsletter email:", error.message);
+  }
+};
