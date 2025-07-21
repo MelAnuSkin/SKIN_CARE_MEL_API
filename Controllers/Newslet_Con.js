@@ -21,7 +21,7 @@ export const subscribeNewsletter = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
+//Send the newsletter
 export const sendNewsletter = async (req, res) => {
   try {
     const { subject, htmlContent } = req.body;
@@ -29,6 +29,12 @@ export const sendNewsletter = async (req, res) => {
     if (!subject || !htmlContent) {
       return res.status(400).json({ message: 'Subject and content are required' });
     }
+
+    // Wrap plain text with basic HTML if it doesn’t already contain tags
+    const hasHTMLTags = /<\/?[a-z][\s\S]*>/i.test(htmlContent);
+    const formattedContent = hasHTMLTags
+      ? htmlContent
+      : `<h2>${subject}</h2><p>${htmlContent}</p>`;
 
     // Get all subscribed emails
     const subscribers = await Newsletter.find({});
@@ -39,7 +45,7 @@ export const sendNewsletter = async (req, res) => {
     }
 
     // Actually send the email
-    await sendNewsletterEmail(recipientEmails, subject, htmlContent);
+    await sendNewsletterEmail(recipientEmails, subject, formattedContent);
 
     res.json({ message: 'Newsletter sent successfully' });
   } catch (error) {
