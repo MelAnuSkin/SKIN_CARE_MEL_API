@@ -8,6 +8,8 @@ import orderRoute from "./Routes/Order_route.js";
 import paymentRoute from "./Routes/Payment_route.js";
 import cartRoute from "./Routes/Cart_route.js";
 import newsLetRoute from "./Routes/Newslet_route.js";
+import { seedAdmin } from "./Middleware/Admin_seeder.js";
+
 
 dotenv.config();
 
@@ -15,17 +17,15 @@ const app = express();
 
 
 // MongoDB Connection
-
-mongoose
-  .connect(process.env.MONGO_URI, {
-    
+mongoose.connect(process.env.MONGO_URI)
+  .then(async () => {
+    console.log("Database connected");
+    await seedAdmin(); 
   })
-  .then(() => console.log('Database connected'))
   .catch((err) => {
-    console.error('MongoDB connection error:', err.message);
+    console.error("MongoDB connection error:", err.message);
     process.exit(1);
   });
-
 
 // Middleware
 
