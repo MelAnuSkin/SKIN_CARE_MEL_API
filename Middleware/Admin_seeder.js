@@ -12,6 +12,7 @@ export const seedAdmin = async () => {
       password: hashedPassword,
       role: "admin",
       acceptedTerms: true,
+      isVerified: true,
     });
     console.log('Admin user created');
   } else {
