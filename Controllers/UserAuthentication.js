@@ -150,7 +150,8 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
 
-    const resetUrl = `${process.env.FRONTEND_URL}/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/confirm-password?token=${resetToken}`;
+
 
     // Use your dedicated password reset email function
     await sendPasswordResetEmail(email, resetUrl);
