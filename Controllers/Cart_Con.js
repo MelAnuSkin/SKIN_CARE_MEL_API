@@ -113,15 +113,18 @@ export const removeCartItem = async (req, res) => {
       (item) => item.product.toString() !== productId
     );
 
-    await cart.save();
-
-    res.json({ message: 'Item removed from cart', cart });
+    if (cart.items.length === 0) {
+      await Cart.deleteOne({ user: userId });
+      return res.json({ message: 'Item removed and cart deleted (empty)' });
+    } else {
+      await cart.save();
+      return res.json({ message: 'Item removed from cart', cart });
+    }
   } catch (error) {
     console.error('Remove cart item error:', error.message);
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Clear entire cart
 export const clearCart = async (req, res) => {
   try {
