@@ -130,8 +130,9 @@ export const login = async (req, res) => {
 };
 
 
+// ==============================
 // FORGOT PASSWORD
-
+// ==============================
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -149,11 +150,8 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-
     const resetUrl = `${process.env.FRONTEND_URL}/confirm-password?token=${resetToken}`;
 
-
-    // Use your dedicated password reset email function
     await sendPasswordResetEmail(email, resetUrl);
 
     res.json({ message: 'Password reset link sent to email' });
@@ -163,13 +161,17 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// ==============================
+
 // RESET PASSWORD
-// ==============================
+
 export const resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { token } = req.query; 
     const { password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: 'Token and new password are required' });
+    }
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
@@ -182,7 +184,7 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired password reset token' });
     }
 
-    user.password = password;
+    user.password = await bcrypt.hash(password, 10); // Hash the new password
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 
