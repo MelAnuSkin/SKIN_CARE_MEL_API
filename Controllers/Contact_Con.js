@@ -25,6 +25,8 @@ export const sendMessage = async (req, res) => {
 
 
 // Admin: Get all contact messages
+
+
 export const getAllMessages = async (req, res) => {
   try {
     const messages = await Contact.find().sort({ createdAt: -1 });
@@ -34,4 +36,3 @@ export const getAllMessages = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-

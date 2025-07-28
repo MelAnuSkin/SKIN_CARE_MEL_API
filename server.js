@@ -9,7 +9,7 @@ import paymentRoute from "./Routes/Payment_route.js";
 import cartRoute from "./Routes/Cart_route.js";
 import newsLetRoute from "./Routes/Newslet_route.js";
 import { seedAdmin } from "./Middleware/Admin_seeder.js";
-import { sendMessage } from "./Controllers/Contact_Con.js";
+import contactRoute from "./Routes/Contact_route.js";
 
 
 dotenv.config();
@@ -45,7 +45,7 @@ app.use('/api/orders', orderRoute);
 app.use('/api/payments', paymentRoute);
 app.use('/api/carts', cartRoute);
 app.use('/api/newsletter', newsLetRoute);
-app.use('/api/contact', sendMessage)
+app.use('/api/contact', contactRoute)
 
 
 // Global Error Handler
