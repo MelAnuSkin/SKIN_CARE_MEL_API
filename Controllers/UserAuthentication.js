@@ -150,7 +150,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    const resetUrl = `${process.env.FRONTEND_URL}/confirm-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}${resetToken}`;
 
     await sendPasswordResetEmail(email, resetUrl);
 
