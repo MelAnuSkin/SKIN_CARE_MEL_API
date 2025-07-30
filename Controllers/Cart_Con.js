@@ -68,7 +68,10 @@ export const getMyCart = async (req, res) => {
 export const updateCartItem = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { productId, quantity } = req.body;
+    const productId = req.body.productId?.toString();
+    const quantity = parseInt(req.body.quantity, 10);
+
+    
 
     if (!productId || quantity === undefined) {
       return res.status(400).json({ message: 'Product ID and quantity are required' });
