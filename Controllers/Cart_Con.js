@@ -82,10 +82,11 @@ export const updateCartItem = async (req, res) => {
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
-
-    const item = cart.items.find(
-      (item) => item.product.toString() === productId
-    );
+     
+    const item = cart.items.find((item) => {
+    const itemId = item.product?._id ? item.product._id.toString() : item.product.toString();
+    return itemId === productId.toString();
+});
 
     if (!item) {
       return res.status(404).json({ message: 'Product not in cart' });
