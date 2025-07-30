@@ -96,15 +96,17 @@ export const updateCartItem = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-// Remove item from cart
+//REemove a single an item from cart
 export const removeCartItem = async (req, res) => {
   try {
     const userId = req.user._id;
     const { productId } = req.body;
 
-    const cart = await Cart.findOne({ user: userId });
+    if (!productId) {
+      return res.status(400).json({ message: 'Product ID is required' });
+    }
 
+    const cart = await Cart.findOne({ user: userId });
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
@@ -113,18 +115,14 @@ export const removeCartItem = async (req, res) => {
       (item) => item.product.toString() !== productId
     );
 
-    if (cart.items.length === 0) {
-      await Cart.deleteOne({ user: userId });
-      return res.json({ message: 'Item removed and cart deleted (empty)' });
-    } else {
-      await cart.save();
-      return res.json({ message: 'Item removed from cart', cart });
-    }
+    await cart.save();
+    res.status(200).json({ message: 'Item removed from cart', cart });
   } catch (error) {
-    console.error('Remove cart item error:', error.message);
+    console.error('Remove from cart error:', error.message);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 // Clear entire cart
 export const clearCart = async (req, res) => {
   try {
@@ -135,10 +133,9 @@ export const clearCart = async (req, res) => {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    cart.items = [];
-    await cart.save();
+    await Cart.deleteOne({ user: userId });
 
-    res.json({ message: 'Cart cleared', cart });
+    res.json({ message: 'Cart cleared and deleted' });
   } catch (error) {
     console.error('Clear cart error:', error.message);
     res.status(500).json({ message: 'Server error' });
