@@ -5,7 +5,8 @@ import { Product } from '../Models/Product_Mod.js';
 export const addToCart = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { productId, quantity } = req.body;
+    const productId = req.body.productId?.toString();
+    const quantity = parseInt(req.body.quantity, 10);
 
     if (!productId || !quantity) {
       return res.status(400).json({ message: 'Product ID and quantity are required' });

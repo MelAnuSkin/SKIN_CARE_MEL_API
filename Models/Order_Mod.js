@@ -29,7 +29,7 @@ const orderSchema = new mongoose.Schema({
     city: String,
     postalCode: String,
     region: String,
-    phone: Number
+    phone: String
   },
   paymentStatus: {
     type: String,
