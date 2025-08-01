@@ -60,12 +60,15 @@ export const replyToContactMessage = async (req, res) => {
       replyMessage
     );
 
-    // Optional: mark the message as replied or store the reply in DB
+    // Save reply
     contact.adminReply = replyMessage;
     contact.repliedAt = new Date();
     await contact.save();
 
-    res.status(200).json({ message: "Reply sent successfully", contact });
+    res.status(200).json({
+      message: "Reply sent successfully",
+      contact,
+    });
   } catch (error) {
     console.error("Admin reply error:", error.message);
     res.status(500).json({ message: "Server error" });
