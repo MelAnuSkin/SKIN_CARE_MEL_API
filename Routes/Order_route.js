@@ -5,7 +5,7 @@ import { protect, adminOnly } from '../Middleware/authen_users.js';
 
 const orderRoute = express.Router();
 
-orderRoute.post('/', protect, createOrder);
+orderRoute.post('/:productId', protect, createOrder);
 orderRoute.get('/my', protect, getUserOrders);
 orderRoute.put('/:id', protect, updateMyOrder);
 orderRoute.put('/:id/cancel', protect, cancelMyOrder);

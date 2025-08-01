@@ -5,11 +5,11 @@ import { Product } from '../Models/Product_Mod.js';
 export const addToCart = async (req, res) => {
   try {
     const userId = req.user._id;
-    const productId = req.body.productId?.toString();
-    const quantity = parseInt(req.body.quantity, 10);
+    const productId = req.params.productId?.toString();  
+    const quantity = parseInt(req.body.quantity, 10) || 1;  
 
-    if (!productId || !quantity) {
-      return res.status(400).json({ message: 'Product ID and quantity are required' });
+    if (!productId) {
+      return res.status(400).json({ message: 'Product ID is required in URL' });
     }
 
     const product = await Product.findById(productId);
@@ -20,13 +20,11 @@ export const addToCart = async (req, res) => {
     let cart = await Cart.findOne({ user: userId });
 
     if (!cart) {
-      // Create new cart
       cart = await Cart.create({
         user: userId,
         items: [{ product: productId, quantity }]
       });
     } else {
-      // Check if product already in cart
       const existingItem = cart.items.find(
         (item) => item.product.toString() === productId
       );
@@ -46,6 +44,7 @@ export const addToCart = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 // Get user's cart
 export const getMyCart = async (req, res) => {
