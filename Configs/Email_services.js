@@ -75,3 +75,32 @@ export const sendNewsletterEmail = async (recipients, subject, htmlContent) => {
     console.error("Failed to send newsletter email:", error.message);
   }
 };
+
+//  Admin replies to contact message
+export const sendAdminReplyEmail = async (toEmail, subject, userMessage, adminReply) => {
+  try {
+    const info = await transporter.sendMail({
+      from: `"MELANU SKINCARE PRODUCT - Support" <${process.env.SMTP_USER}>`,
+      to: toEmail,
+      subject: `RE: ${subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9;">
+          <p>Hi,</p>
+          <p>You contacted us with the message below:</p>
+          <blockquote style="margin: 10px 0; padding: 10px; background: #e9ecef; border-left: 4px solid #007BFF;">
+            ${userMessage}
+          </blockquote>
+          <p>Our response:</p>
+          <div style="padding: 10px; background: #d4edda; border-left: 4px solid #28a745;">
+            ${adminReply}
+          </div>
+          <p style="margin-top: 20px;">Thank you for reaching out to MELANU SKINCARE PRODUCT.</p>
+        </div>
+      `,
+    });
+
+    console.log("Admin reply email sent:", info.messageId);
+  } catch (error) {
+    console.error("Failed to send admin reply email:", error.message);
+  }
+};
