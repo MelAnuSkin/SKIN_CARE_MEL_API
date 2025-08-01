@@ -14,7 +14,7 @@ cartRoute.post('/add/:productId', addToCart);
 cartRoute.get('/', getMyCart);
 
 // Update item quantity in cart
-cartRoute.put('/update', updateCartItem);
+cartRoute.put('/update/:productId', updateCartItem);
 
 // Remove single item from cart
 cartRoute.delete('/remove', removeCartItem);
