@@ -2,28 +2,24 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import { Order } from '../Models/Order_Mod.js';
+import { sendMailWithPaymentLink } from '../Configs/Email_services.js';
 
 dotenv.config();
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
 // initialize payment 
+
+
 export const initiatePayment = async (req, res) => {
   try {
-    const { email, orderId } = req.body;
+    const { _id: userId, email: userEmail, fullName, username } = req.user;
 
-    if (!email || !orderId) {
-      return res.status(400).json({ message: 'Email and orderId are required' });
-    }
+    // Find the user's most recent or unpaid order
+    const order = await Order.findOne({ user: userId, paymentStatus: 'pending' });
 
-    // Fetch order from DB
-    const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
-
-    if (order.paymentStatus === 'paid') {
-      return res.status(400).json({ message: 'Order is already paid' });
+      return res.status(404).json({ message: 'No pending order found for user' });
     }
 
     const amountInKobo = order.totalAmount * 100;
@@ -33,8 +29,8 @@ export const initiatePayment = async (req, res) => {
       'https://api.paystack.co/transaction/initialize',
       {
         amount: amountInKobo,
-        email,
-        metadata: { orderId }
+        email: userEmail,
+        metadata: { orderId: order._id }
       },
       {
         headers: {
@@ -45,12 +41,23 @@ export const initiatePayment = async (req, res) => {
 
     const { authorization_url, reference } = response.data.data;
 
-    res.status(200).json({ authorization_url, reference });
+    await sendMailWithPaymentLink(
+      userEmail,
+      fullName || username || 'Valued customer',
+      authorization_url
+    );
+
+    res.status(200).json({ 
+      message: "Payment link has been sent to your email.",
+      reference,
+    });
+
   } catch (error) {
     console.error('Payment initiation failed:', error?.response?.data || error.message);
     res.status(500).json({ message: 'Failed to initiate payment' });
   }
 };
+
 
 
 // Manual payment verification

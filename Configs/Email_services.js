@@ -104,3 +104,52 @@ export const sendAdminReplyEmail = async (toEmail, subject, userMessage, adminRe
     console.error("Failed to send admin reply email:", error.message);
   }
 };
+
+// Send Payment Confirmation Email
+export const sendPaymentConfirmationEmail = async (toEmail, userName, amount) => {
+  try {
+    const info = await transporter.sendMail({
+      from: `"MELANU SKINCARE PRODUCT" <${process.env.SMTP_USER}>`,
+      to: toEmail,
+      subject: "Payment Confirmation - MELANU SKINCARE",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2;">
+          <h2 style="color: #28a745;">Payment Successful</h2>
+          <p>Dear ${userName},</p>
+          <p>We’ve received your payment of <strong>GHS ${amount}</strong>. Your vendor account is now active.</p>
+          <p>Thank you for joining MELANU SKINCARE PRODUCT as a valued vendor.</p>
+          <p style="font-size: 14px; color: #777;">If you have any questions, feel free to reply to this email.</p>
+        </div>
+      `,
+    });
+
+    console.log("Payment confirmation email sent:", info.messageId);
+  } catch (error) {
+    console.error("Failed to send payment confirmation email:", error.message);
+  }
+};
+
+export const sendMailWithPaymentLink = async (toEmail, name, paymentLink) => {
+  try {
+    const info = await transporter.sendMail({
+      from: `"MELANU SKINCARE PRODUCT" <${process.env.SMTP_USER}>`,
+      to: toEmail,
+      subject: "Complete Your Payment - MELANU SKINCARE",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2 style="color: #e91e63;">Hello ${name || 'there'},</h2>
+          <p>Thank you for your order. To complete your purchase, please click the link below to make payment:</p>
+          <a href="${paymentLink}" style="display: inline-block; padding: 10px 20px; background: #867520ff; color: #fff; text-decoration: none; border-radius: 4px;">Pay Now</a>
+          <p>If the button doesn't work, copy and paste the following link into your browser:</p>
+          <p><a href="${paymentLink}">${paymentLink}</a></p>
+          <p>Thank you for choosing MELANU SKINCARE PRODUCT.</p>
+        </div>
+      `
+    });
+
+    console.log('Payment link email sent:', info.messageId);
+  } catch (error) {
+    console.error('Failed to send payment link email:', error.message);
+  }
+};
+
