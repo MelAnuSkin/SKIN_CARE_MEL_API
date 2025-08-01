@@ -6,6 +6,6 @@ const contactRoute = express.Router();
 
 contactRoute.post('/send', sendMessage);
 contactRoute.get('/all', getAllMessages)
-contactRoute.post('/reply/:contactId', adminOnly, replyToContactMessage); 
+contactRoute.post('/reply/:contactId',  replyToContactMessage); 
 
 export default contactRoute;
