@@ -4,34 +4,47 @@ import { Product } from '../Models/Product_Mod.js';
 // Create Order
 export const createOrder = async (req, res) => {
   try {
-    const productId = req.params.productId;
-    const { quantity, shippingAddress } = req.body;
+    const { productId, quantity, shippingAddress } = req.body;
 
+    // Validate input
+    if (!productId || !quantity || !shippingAddress) {
+      return res.status(400).json({ message: 'Product, quantity, and shipping address are required' });
+    }
+
+    // Find the product
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
 
-    const orderItem = {
-      product: product._id,
-      quantity: quantity || 1,
-      price: product.price
-    };
+    // Check if enough stock is available
+    if (product.countInStock < quantity) {
+      return res.status(400).json({ message: 'Not enough stock available' });
+    }
 
-    const totalAmount = product.price * orderItem.quantity;
-
-    const newOrder = await Order.create({
+    // Create the order
+    const order = await Order.create({
       user: req.user._id,
-      items: [orderItem],
+      product: product._id,
+      quantity,
       shippingAddress,
-      totalAmount
+      totalAmount: product.price * quantity,
+      status: 'pending',
     });
 
-    res.status(201).json({ message: 'Order placed', order: newOrder });
+    // Reduce stock
+    product.countInStock -= quantity;
+    await product.save();
+
+    res.status(201).json({
+      message: 'Order created successfully',
+      order,
+    });
   } catch (error) {
-    console.error('Order creation error:', error.message);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Create Order Error:', error);
+    res.status(500).json({ message: 'Server error while creating order' });
   }
 };
-
 
 
 // Get logged-in user's orders
