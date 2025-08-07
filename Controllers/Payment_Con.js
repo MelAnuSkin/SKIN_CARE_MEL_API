@@ -10,21 +10,22 @@ const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
 // initialize payment 
 
-
 export const initiatePayment = async (req, res) => {
   try {
     const { _id: userId, email: userEmail, fullName, username } = req.user;
+    const { orderId } = req.body;
 
-    // Find the user's most recent or unpaid order
-    const order = await Order.findOne({ user: userId, paymentStatus: 'pending' });
+    if (!orderId) {
+      return res.status(400).json({ message: 'Order ID is required' });
+    }
 
+    const order = await Order.findOne({ _id: orderId, user: userId, paymentStatus: 'pending' });
     if (!order) {
-      return res.status(404).json({ message: 'No pending order found for user' });
+      return res.status(404).json({ message: 'Pending order not found' });
     }
 
     const amountInKobo = order.totalAmount * 100;
 
-    // Initialize transaction with Paystack
     const response = await axios.post(
       'https://api.paystack.co/transaction/initialize',
       {
@@ -50,6 +51,7 @@ export const initiatePayment = async (req, res) => {
     res.status(200).json({ 
       message: "Payment link has been sent to your email.",
       reference,
+      paymentUrl: authorization_url
     });
 
   } catch (error) {
@@ -57,8 +59,6 @@ export const initiatePayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to initiate payment' });
   }
 };
-
-
 
 // Manual payment verification
 export const verifyPayment = async (req, res) => {
