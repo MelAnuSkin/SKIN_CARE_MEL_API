@@ -1,9 +1,10 @@
 import express from "express";
-import { recordView, getViews } from "../Controllers/View_Con.js";
+import { recordUniqueView, getViewCount } from "../Controllers/View_Con.js";
 
 const ViewRoute = express.Router();
 
-ViewRoute.post("/record", recordView); 
-ViewRoute.get("/count", getViews);     
+ViewRoute.get("/", recordUniqueView);
+ViewRoute.get("/count", getViewCount);
+
 
 export default ViewRoute;

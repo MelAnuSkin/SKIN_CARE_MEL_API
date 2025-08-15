@@ -1,32 +1,43 @@
+import { Visitor } from "../Models/Visitor_Mod.js";
 import { View } from "../Models/View_Mod.js";
 
-// Record a new view
-export const recordView = async (req, res) => {
+export const recordUniqueView = async (req, res) => {
   try {
-    let viewDoc = await View.findOne();
+    const ipAddress =
+      req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress;
 
-    if (!viewDoc) {
-      // First ever visit
-      viewDoc = await View.create({ count: 1 });
-    } else {
-      // Add +1 for each visit
-      viewDoc.count += 1;
-      await viewDoc.save();
+    // Check if this IP has visited in the last 24 hours
+    const lastVisit = await Visitor.findOne({ ip: ipAddress })
+      .sort({ visitedAt: -1 });
+
+    if (!lastVisit || Date.now() - lastVisit.visitedAt.getTime() > 24 * 60 * 60 * 1000) {
+      // Save IP
+      await Visitor.create({ ip: ipAddress });
+
+      // Increment total views
+      let viewRecord = await View.findOne();
+      if (!viewRecord) {
+        viewRecord = await View.create({ count: 1 });
+      } else {
+        viewRecord.count += 1;
+        await viewRecord.save();
+      }
     }
 
-    res.json({ message: "View recorded", totalViews: viewDoc.count });
+    res.json({ message: "View recorded (unique for 24h)" });
   } catch (error) {
-    console.error("View tracking error:", error.message);
+    console.error("View record error:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// Get total views
-export const getViews = async (req, res) => {
+export const getViewCount = async (req, res) => {
   try {
-    const viewDoc = await View.findOne();
-    res.json({ totalViews: viewDoc ? viewDoc.count : 0 });
+    const viewRecord = await View.findOne();
+    res.json({ count: viewRecord?.count || 0 });
   } catch (error) {
+    console.error("Get view count error:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
+
