@@ -10,6 +10,7 @@ import cartRoute from "./Routes/Cart_route.js";
 import newsLetRoute from "./Routes/Newslet_route.js";
 import { seedAdmin } from "./Middleware/Admin_seeder.js";
 import contactRoute from "./Routes/Contact_route.js";
+import ViewRoute from "./Routes/View_route.js";
 
 
 dotenv.config();
@@ -46,6 +47,7 @@ app.use('/api/payments', paymentRoute);
 app.use('/api/carts', cartRoute);
 app.use('/api/newsletter', newsLetRoute);
 app.use('/api/contact', contactRoute)
+app.use('/api/views', ViewRoute);
 
 
 // Global Error Handler

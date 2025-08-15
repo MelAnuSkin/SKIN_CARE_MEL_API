@@ -74,3 +74,28 @@ export const replyToContactMessage = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Admin: Delete contact message
+export const deleteContactMessage = async (req, res) => {
+  try {
+    const { contactId } = req.params;
+
+    if (!contactId) {
+      return res.status(400).json({ message: "Contact ID is required" });
+    }
+
+    const deletedMessage = await Contact.findByIdAndDelete(contactId);
+
+    if (!deletedMessage) {
+      return res.status(404).json({ message: "Contact message not found" });
+    }
+
+    res.status(200).json({
+      message: "Contact message deleted successfully",
+      deletedMessage,
+    });
+  } catch (error) {
+    console.error("Delete contact message error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
