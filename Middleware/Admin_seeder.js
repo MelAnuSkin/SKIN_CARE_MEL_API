@@ -8,7 +8,7 @@ export const seedAdmin = async () => {
       firstName: "Comfort",
       lastName: "Parker",
       email: "c39744736@gmail.com",
-      password: "admin123", // Plain text, Mongoose will hash it
+      password: "MELANU2025", // Plain text, Mongoose will hash it
       role: "admin",
       acceptedTerms: true,
       isVerified: true,
